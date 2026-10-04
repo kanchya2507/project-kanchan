@@ -94,7 +94,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: fastapi-app # Must match the exact Container name inside your Task definition JSON
+          container-name: main # Must match the exact Container name inside your Task definition JSON
           image: ${{ vars.DOCKERHUB_USERNAME }}/fastapi-app:${{ github.sha }}
 
       # Step 4: Submit the updated schema file back to AWS ECS to run a rolling update
