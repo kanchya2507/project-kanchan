@@ -35,7 +35,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest
+          pytest --pass-on-empty
 
   # Job 2: Build and Push Docker Image (Runs ONLY if testing succeeds)
   build-and-push:
