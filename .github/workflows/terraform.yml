@@ -60,10 +60,16 @@ jobs:
         run: terraform validate
 
       - name: Terraform plan
-        working-directory: terraform
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.action != 'destroy' }}
         env:
           TF_VAR_container_image: ${{ vars.DOCKERHUB_USERNAME }}/fastapi-app:latest
         run: terraform plan -input=false -no-color -lock-timeout=5m -out=tfplan
+
+      - name: Terraform destroy plan
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.action == 'destroy' }}
+        env:
+          TF_VAR_container_image: ${{ vars.DOCKERHUB_USERNAME }}/fastapi-app:latest
+        run: terraform plan -destroy -input=false -no-color -lock-timeout=5m -out=tfplan
 
       - name: Show plan in job summary
         run: |
