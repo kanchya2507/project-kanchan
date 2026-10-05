@@ -60,11 +60,10 @@ jobs:
         run: terraform validate
 
       - name: Terraform plan
+        working-directory: terraform
         env:
-          DESTROY_FLAG: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
-        run: |
-          terraform plan -input=false -no-color -lock-timeout=5m \
-            $DESTROY_FLAG -out=tfplan
+          TF_VAR_container_image: ${{ vars.DOCKERHUB_USERNAME }}/fastapi-app:latest
+        run: terraform plan -input=false -no-color -lock-timeout=5m
 
       - name: Show plan in job summary
         run: |
