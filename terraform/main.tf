@@ -175,7 +175,7 @@ resource "aws_vpc_security_group_egress_rule" "ecs_all_out" {
 }
 
 # =============================================================================
-# IAM ROLES #
+# IAM ROLES
 # =============================================================================
 data "aws_iam_policy_document" "ecs_tasks_assume" {
   statement {
