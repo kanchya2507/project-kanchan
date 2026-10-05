@@ -1,0 +1,119 @@
+name: Terraform Infra Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yaml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yaml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to run'
+        type: choice
+        options: [ plan, apply, destroy ]
+        default: plan
+
+permissions:
+  id-token: write      # AWS OIDC
+  contents: read
+
+concurrency:
+  group: terraform-infra     # one run at a time against the same state
+  cancel-in-progress: false
+
+env:
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  plan:
+    name: Format, Validate & Plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.TF_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.10"     # S3 native locking needs 1.10+
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        env:
+          DESTROY_FLAG: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
+        run: |
+          terraform plan -input=false -no-color -lock-timeout=5m \
+            -var-file=dev.tfvars $DESTROY_FLAG -out=tfplan
+
+      - name: Show plan in job summary
+        run: |
+          {
+            echo '### Terraform plan'
+            echo '```'
+            terraform show -no-color tfplan
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
+          retention-days: 1
+
+  apply:
+    name: Apply (needs approval)
+    needs: plan
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.action != 'plan')
+    runs-on: ubuntu-latest
+    environment: production        # add "Required reviewers" in GitHub for a manual approval gate
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.TF_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.10"
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Download reviewed plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform
+
+      - name: Terraform apply (exactly the reviewed plan)
+        run: terraform apply -input=false -lock-timeout=5m tfplan
