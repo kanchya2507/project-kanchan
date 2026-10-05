@@ -64,7 +64,7 @@ jobs:
           DESTROY_FLAG: ${{ inputs.action == 'destroy' && '-destroy' || '' }}
         run: |
           terraform plan -input=false -no-color -lock-timeout=5m \
-            -var-file=dev.tfvars $DESTROY_FLAG -out=tfplan
+            $DESTROY_FLAG -out=tfplan
 
       - name: Show plan in job summary
         run: |
