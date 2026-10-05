@@ -20,7 +20,7 @@ on:
         default: plan
 
 permissions:
-  id-token: write      # AWS OIDC
+  id-token: write      ## AWS OIDC
   contents: read
 
 concurrency:
