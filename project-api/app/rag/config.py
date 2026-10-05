@@ -19,7 +19,7 @@ CHROMA_DIR = configured_path("RAG_CHROMA_DIR", PROJECT_ROOT / "data" / "chroma")
 COLLECTION_NAME = "devops_interview_docs"
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 EMBEDDING_MODEL = os.getenv(
     "RAG_EMBEDDING_MODEL",
     "sentence-transformers/all-MiniLM-L6-v2",
