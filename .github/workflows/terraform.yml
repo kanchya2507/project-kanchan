@@ -90,9 +90,7 @@ jobs:
   apply:
     name: Apply (needs approval)
     needs: plan
-    if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.action != 'plan')
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.action == 'apply' || inputs.action == 'destroy') }}
     runs-on: ubuntu-latest
     environment: production        # add "Required reviewers" in GitHub for a manual approval gate
     defaults:
