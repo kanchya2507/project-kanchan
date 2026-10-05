@@ -3,7 +3,7 @@ name: FastAPI CI/CD Pipeline
 on:
   push:
     branches: [ main ]
-    paths:                       # CHANGED: only run for app changes, not Terraform changes
+    paths:                       ## CHANGED: only run for app changes, not Terraform changes
       - 'project-api/**'
       - '.github/workflows/ci.yml'
   pull_request:
