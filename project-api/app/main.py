@@ -153,7 +153,7 @@ def root_dashboard():
         <h1>Control Center</h1>
         <p class="subtitle">A live view of your API, service health, and deployed release.</p>
       </div>
-      <button class="button primary" onclick="refreshStatus()">↻ &nbsp; Refresh status</button>
+      <button id="refresh-status" class="button primary" type="button">↻ &nbsp; Refresh status</button>
     </section>
 
     <section class="grid metrics">
@@ -189,7 +189,7 @@ def root_dashboard():
     </section>
 
     <section class="card section users" id="users">
-      <div class="section-title"><div><h2>Team members</h2><div class="muted">Sample data from <code>/api/users</code></div></div><button class="button" onclick="loadUsers()">Reload users</button></div>
+      <div class="section-title"><div><h2>Team members</h2><div class="muted">Sample data from <code>/api/users</code></div></div><button id="reload-users" class="button" type="button">Reload users</button></div>
       <div class="table-wrap"><table><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Account</th></tr></thead><tbody id="user-rows"><tr><td colspan="4" class="muted">Loading users…</td></tr></tbody></table></div>
     </section>
     <div class="footer">FastAPI Control Center &nbsp;·&nbsp; Build __BUILD_SHA__ &nbsp;·&nbsp; <span id="footer-time"></span></div>
@@ -198,34 +198,55 @@ def root_dashboard():
 <script>
   async function refreshStatus() {
     const status = document.getElementById("api-status");
+    const serviceStatus = document.getElementById("service-status");
+
+    status.textContent = "Checking";
     try {
-      const response = await fetch("/health", {cache: "no-store"});
+      const response = await fetch("/health", { cache: "no-store" });
+      if (!response.ok) throw new Error(`Health request failed: ${response.status}`);
+
       const data = await response.json();
-      status.textContent = response.ok ? "Healthy" : "Error";
-      document.getElementById("service-status").textContent = response.ok ? "Operational" : "Unavailable";
-      document.getElementById("started-at").textContent = new Date(data.started_at).toLocaleString();
-    } catch {
+      status.textContent = "Healthy";
+      serviceStatus.textContent = "Operational";
+      document.getElementById("started-at").textContent =
+        new Date(data.started_at).toLocaleString();
+    } catch (error) {
       status.textContent = "Offline";
-      document.getElementById("service-status").textContent = "Unavailable";
+      serviceStatus.textContent = "Unavailable";
+      console.error("Could not refresh health status:", error);
     }
   }
 
   async function loadUsers() {
     const target = document.getElementById("user-rows");
+    target.innerHTML = '<tr><td colspan="4" class="muted">Loading users…</td></tr>';
+
     try {
-      const response = await fetch("/api/users", {cache: "no-store"});
+      const response = await fetch("/api/users", { cache: "no-store" });
+      if (!response.ok) throw new Error(`Users request failed: ${response.status}`);
+
       const users = await response.json();
       target.innerHTML = users.map(user => `
         <tr>
-          <td><div class="user-cell"><div class="user-avatar">${user.name.split(" ").map(part => part[0]).join("")}</div><div><strong>${user.name}</strong><div class="muted">${user.email}</div></div></div></td>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar">${user.name.split(" ").map(part => part[0]).join("")}</div>
+              <div><strong>${user.name}</strong><div class="muted">${user.email}</div></div>
+            </div>
+          </td>
           <td>${user.role}</td>
           <td><span class="pill ${user.status === "Pending" ? "pending" : ""}">${user.status}</span></td>
           <td class="muted">#${user.id.toString().padStart(4, "0")}</td>
-        </tr>`).join("");
-    } catch {
-      target.innerHTML = '<tr><td colspan="4" class="muted">Unable to load users.</td></tr>';
+        </tr>
+      `).join("");
+    } catch (error) {
+      target.innerHTML = '<tr><td colspan="4" class="muted">Could not load users. Check the API.</td></tr>';
+      console.error("Could not load users:", error);
     }
   }
+
+  document.getElementById("refresh-status").addEventListener("click", refreshStatus);
+  document.getElementById("reload-users").addEventListener("click", loadUsers);
 
   document.getElementById("footer-time").textContent = new Date().toLocaleString();
   refreshStatus();
