@@ -12,7 +12,7 @@ on:
       - 'project-api/**'
       - '.github/workflows/ci.yml'
 permissions:
-  id-token: write
+  id-token: write #
   contents: read
 
 concurrency:                     # NEW: never run two deployments at once
