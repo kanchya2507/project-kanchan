@@ -4,6 +4,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from app.rag.routes import router as interview_router
 
 APP_VERSION = os.getenv("APP_VERSION", "3.0.0")
 BUILD_SHA = os.getenv("BUILD_SHA", "local/dev")
@@ -22,6 +23,11 @@ USERS = [
     {"id": 4, "name": "Leo Chen", "email": "leo@example.com", "role": "Editor", "status": "Active"},
 ]
 
+app.include_router(
+    interview_router,
+    prefix="/api/interview",
+    tags=["DevOps interviewer"],
+)
 
 @app.get("/", response_class=HTMLResponse)
 def root_dashboard():

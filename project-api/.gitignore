@@ -1,0 +1,6 @@
+# Local API credentials
+.env
+
+# User-provided documents and generated vector index
+data/pdfs/
+data/chroma/
