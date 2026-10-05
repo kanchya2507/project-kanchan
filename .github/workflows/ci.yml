@@ -12,9 +12,9 @@ on:
       - 'project-api/**'
       - '.github/workflows/ci.yml'
 permissions:
-  id-token: write      # Required for AWS OIDC
+  id-token: write 
   contents: read
-  
+
 concurrency:                     # NEW: never run two deployments at once
   group: app-deploy-${{ github.ref }}
   cancel-in-progress: false
