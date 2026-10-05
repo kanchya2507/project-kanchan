@@ -86,7 +86,7 @@ jobs:
       # Step 2: Download your current Task Definition from your AWS cluster
       - name: Download active task definition
         run: |
-          aws ecs describe-task-definition --task-definition fastapi-task --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition fastapi-dev --query taskDefinition > task-definition.json
 
       # Step 3: Swap out the target image reference for your new Git Commit SHA
       - name: Fill in the new image ID in the Amazon ECS task definition
@@ -94,7 +94,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: Main # Must match the exact Container name inside your Task definition JSON
+          container-name: fast-api # Must match the exact Container name inside your Task definition JSON
           image: ${{ vars.DOCKERHUB_USERNAME }}/fastapi-app:${{ github.sha }}
 
       # Step 4: Submit the updated schema file back to AWS ECS to run a rolling update
@@ -102,6 +102,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: fastapi-task-service-44vbmspx # Matches your service name precisely
-          cluster: api-cluster                  # Matches your cluster name precisely
+          service: fastapi-dev-service  # Matches your service name precisely
+          cluster: fastapi-dev-cluster                  # Matches your cluster name precisely
           wait-for-service-stability: true      # Monitors execution logs until new containers pass health checks

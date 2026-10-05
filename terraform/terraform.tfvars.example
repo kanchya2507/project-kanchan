@@ -1,0 +1,37 @@
+# Copy to terraform.tfvars and edit. Never commit real secrets.
+aws_region   = "us-east-1"
+project_name = "fastapi"
+environment  = "dev"
+
+# Docker Hub image (push it first with ../deploy.sh)
+container_image   = "youruser/fastapi-app:v1"
+container_port    = 8000
+health_check_path = "/health"
+
+# --- Pick ONE cost profile ---
+# A) Budget dev  (~$38/mo): tasks in public subnets, no NAT, 1 task
+# enable_nat_gateway = false
+# desired_count      = 1
+# min_capacity       = 1
+# max_capacity       = 2
+
+# B) Diagram design (~$82/mo): private subnets + 1 NAT, 2 tasks  <- default
+enable_nat_gateway = true
+single_nat_gateway = true
+desired_count      = 2
+
+# C) Production HA (~$143/mo): NAT per AZ + bigger tasks
+# single_nat_gateway = false
+# task_cpu           = 512
+# task_memory        = 1024
+
+# Optional: custom domain + HTTPS
+# domain_name      = "api.example.com"
+# hosted_zone_name = "example.com"
+
+# Optional: alarms + budget email
+# alarm_email        = "you@example.com"
+# monthly_budget_usd = "100"
+
+# Private Docker Hub repo only (see README):
+# dockerhub_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:dockerhub-xxxxxx"
