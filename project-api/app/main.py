@@ -8,7 +8,7 @@ app = FastAPI(
     version="2.0.0" # Bumped to a major release version!
 )
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse) 
 def root_dashboard():
     # A beautiful, modern styled HTML dashboard to immediately verify deployment success visually!
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
