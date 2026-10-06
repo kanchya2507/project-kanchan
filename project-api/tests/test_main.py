@@ -10,6 +10,13 @@ def test_read_root():
     assert response.status_code == 200
 
 
+def test_health_check():
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
 def test_qa_endpoint_returns_answer(monkeypatch):
     def fake_answer_question(question, source=None):
         assert question == "What is CI/CD?"

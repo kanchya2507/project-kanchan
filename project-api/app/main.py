@@ -30,6 +30,11 @@ app.include_router(
     tags=["DevOps interviewer"],
 )
 
+@app.get("/health", tags=["System"], summary="Check application health")
+def health_check():
+  return {"status": "ok"}
+
+
 @app.get("/", response_class=HTMLResponse, tags=["QA Console"], summary="Open DevOps QA landing page")
 def root_dashboard():
     page = """

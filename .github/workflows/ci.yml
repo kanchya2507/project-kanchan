@@ -91,6 +91,15 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Verify Groq API key is configured
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "GROQ_API_KEY GitHub Actions secret is required" >&2
+            exit 1
+          fi
+
       # CHANGED: names now come from repo variables (new stack: fastapi)
       - name: Download active task definition
         run: |
@@ -105,6 +114,8 @@ jobs:
           task-definition: task-definition.json
           container-name: ${{ vars.ECS_CONTAINER_NAME }}   # Terraform default: app
           image: ${{ vars.DOCKERHUB_USERNAME }}/fastapi-app:${{ github.sha }}
+          environment-variables: |
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
