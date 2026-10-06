@@ -49,11 +49,7 @@ def _format_context(chunks: list[dict]) -> str:
     if not chunks:
         return "No matching PDF excerpts were found."
 
-    return "\n\n".join(
-        f"[Source: {item['metadata']['source']}, "
-        f"page {item['metadata']['page']}]\n{item['text']}"
-        for item in chunks
-    )
+    return "\n\n".join(item["text"] for item in chunks)
 
 
 def start_interview(source: str | None = None) -> tuple[str, str]:
@@ -83,6 +79,21 @@ def start_interview(source: str | None = None) -> tuple[str, str]:
         _sessions[session_id] = session
 
     return session_id, question
+
+
+def answer_question(question: str, source: str | None = None) -> str:
+    chunks = search(question, source)
+    if not chunks:
+        raise ValueError("No relevant PDF excerpts found for this question.")
+
+    prompt = (
+        "You are a helpful DevOps expert. Answer the user's question using only "
+        "the supplied PDF excerpts. If the excerpts do not contain enough information, "
+        "say clearly that the answer is not available from the documents.\n\n"
+        f"User question:\n{question}\n\n"
+        f"Relevant PDF excerpts:\n{_format_context(chunks)}"
+    )
+    return _call_groq([{"role": "user", "content": prompt}])
 
 
 def submit_answer(session_id: str, answer: str) -> str:
